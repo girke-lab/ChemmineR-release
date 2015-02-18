@@ -1,13 +1,15 @@
 ## IMPORTS
-import(methods, graphics, stats, RCurl,DBI,digest)
+import(methods, graphics, stats, RCurl, rjson, DBI,digest,Rcpp)
 
 useDynLib(ChemmineR)
+
+#importFrom{Rcpp, evalCpp}
 
 ## EXPORTS
 ## S4 Classes
 ## Source: AllClasses.R
 exportClasses(
-    "SDFstr", "SDF", "SDFset", "SMI", "SMIset", "AP", "APset", "FP", "FPset"
+    "SDFstr", "SDF", "SDFset", "SMI", "SMIset", "AP", "APset", "FP", "FPset", "jobToken"
 )
 
 ## Methods
@@ -58,7 +60,8 @@ export(
     "cmp.duplicated", "sdf.visualize", "db.subset",
 	 "smiles2sdf","sdf2smiles",
 	 "propOB","fingerprintOB", "regenerateCoords",
-	 "smartsSearchOB",
+	 "smartsSearchOB","exactMassOB", "generate3DCoords","canonicalize",
+	 "canonicalNumbering",
     
     ## Fingerprint functions
     ## Source: sim.R
@@ -79,9 +82,15 @@ export(
     "getCompoundNames","findCompoundsByName","addNewFeatures",
     "listFeatures", "jarvisPatrick_c", "genAPDescriptors",
 	 "addDescriptorType", "setPriorities", "randomPriorities",
-	 "forestSizePriorities",
+	 "forestSizePriorities","getAllCompoundIds","getCompoundFeatures",
 
     ## Large file/query utilites
-    "bufferLines","bufferResultSet","parBatchByIndex","batchByIndex","selectInBatches","dbTransaction"
+    "bufferLines","bufferResultSet","parBatchByIndex","batchByIndex","selectInBatches","dbTransaction",
+
+	##ChemmineDrugs functions
+	 "DUD","DrugBank",
+
+    ## Chemmine Tools
+    "status","browseJob","result","listCMTools","toolDetails","launchCMTool"
 )
 

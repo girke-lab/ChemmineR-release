@@ -851,6 +851,10 @@ db.explain <- function(desc)
     return(vec)
 }
 
+.uniquifyAtomPairs <- function(desc) {
+	.Call("uniquifyAtomPairs",desc)
+}
+
 .progress_bar_int_cnt <- 0
 .progress_bar <- function(label=NULL) {
     progress <- c("|", "/", "-", "\\")
@@ -1107,7 +1111,7 @@ fp2bit <- function(x, type=3, fptag="PUBCHEM_CACTVS_SUBSKEYS") {
 }
 
 ## Fingerprint comparison and similarity search function 
-fpSim <- function(x, y, sorted=TRUE, method="Tanimoto", addone=1, cutoff=0, top="all", alpha=1, beta=1, ...) {
+fpSimOrig <- function(x, y, sorted=TRUE, method="Tanimoto", addone=1, cutoff=0, top="all", alpha=1, beta=1, ...) {
 	## Predefined similarity methods
 	if(class(method)=="character") {
 	 	if(method=="Tanimoto" | method=="tanimoto") method <- function(a,b,c,d) (c+addone)/(a+b+c+addone)
@@ -1159,6 +1163,56 @@ fpSim <- function(x, y, sorted=TRUE, method="Tanimoto", addone=1, cutoff=0, top=
 	}
 }
 
+fpSim <- function(x, y, sorted=TRUE, method="Tanimoto", addone=1, cutoff=0, top="all", alpha=1, beta=1) {
+
+	if(class(method)=="character") {
+	 	if(method=="Tanimoto" | method=="tanimoto") 
+			method <- 0
+		else if(method=="Euclidean" | method=="euclidean") 
+			method <- 1
+		else if(method=="Tversky" | method=="tversky") 
+			method <- 2
+		else if(method=="Dice" | method=="dice") 
+			method <- 3
+		else 
+			stop("invalid method found: ",method)
+	}else
+		return(fpSimOrig(x,y,sorted=sorted,method=method,addone=addone,cutoff=cutoff,top=top,
+							  alpha=alpha, beta=beta))
+		#stop("invalid method type found: ",class(method))
+
+
+
+	if(!any(c(is.vector(x), class(x)=="FP", class(x)=="FPset" & length(x)==1))) 
+		stop("x needs to be object of class FP, FPset of length one, or vector")
+   if(!any(c(is.vector(y), is.matrix(y), class(y)=="FP", class(y)=="FPset"))) 
+		stop("y needs to be object of class FP/FPset, vector or matrix")
+
+	## Convert FP/FPset inputs into vector/matrix format
+	if(class(x)=="FP") x <- as.numeric(x)
+	if(class(x)=="FPset") x <- as.numeric(x[[1]])
+	if(class(y)=="FP") y <- as.numeric(y)
+	if(class(y)=="FPset") y <- as.matrix(y)
+	if(is.vector(y)) y <- t(as.matrix(y))
+   
+
+
+	result=.Call("similarity",x,y,method,addone,alpha,beta)
+	names(result) = rownames(y)
+
+	if(sorted) {
+		result = sort(result, decreasing=TRUE)
+		if(top!="all")
+			result = result[1:top]
+	}
+	cutoffCount = length(result[result >= cutoff])
+	if( cutoffCount >= 1)
+		result[result >= cutoff]
+	else # make sure we don't lose all results do to cutoff
+		result
+	
+
+}
 ######################################
 ## Query ChemMine Web Tools Service ##
 ######################################
@@ -1224,8 +1278,9 @@ sdf2smilesOB <- function(sdf) {
     } 
 
 	 if(.haveOB()){
-		 sdfstrList=as(as(sdf,"SDFstr"),"list")
-		 defs = paste(Map(function(x) paste(x,collapse="\n"), sdfstrList),collapse="\n" )
+		 #sdfstrList=as(as(sdf,"SDFstr"),"list")
+		 #defs = paste(Map(function(x) paste(x,collapse="\n"), sdfstrList),collapse="\n" )
+		 defs = sdfSet2definition(sdf)
 		 t=Reduce(rbind,strsplit(unlist(strsplit(convertFormat("SDF","SMI",defs),
 															  "\n",fixed=TRUE)),
 					 "\t",fixed=TRUE))
@@ -1245,14 +1300,14 @@ sdf2smilesOB <- function(sdf) {
 sdf2smiles <- sdf2smilesOB
 
 sdf2smilesWeb <- function(sdfset,limit=100){
-	message("class of sdfset: ",class(sdfset))
+	#message("class of sdfset: ",class(sdfset))
 	 if(length(sdfset) > limit)
 		 sdfset = sdfset[1:limit]
 
 	 smiles =c()
 	 for(i in seq(along=sdfset)){
 
-		message("class of sdfset[[]]: ",class(sdfset[[i]]))
+		#message("class of sdfset[[]]: ",class(sdfset[[i]]))
 		 sdf <- sdf2str(sdfset[[i]])
 		 sdf <- paste(sdf, collapse="\n")
 		 response <- postForm(paste(.serverURL, "runapp?app=sdf2smiles", sep=""), sdf=sdf)[[1]]
@@ -1287,21 +1342,42 @@ smiles2sdfOB <- function(smiles) {
 smiles2sdf <- smiles2sdfOB
 
 regenCoordsOB <- function(sdf){
+	applyOptions(sdf,data.frame(names="gen2D",args=""))
+}
+regenerateCoords <- regenCoordsOB
+
+generate3DCoordsOB <- function(sdf){
+	applyOptions(sdf,data.frame(names="gen3D",args=""))
+}
+generate3DCoords <- generate3DCoordsOB
+
+canonicalizeOB <- function(sdf){
+	applyOptions(sdf,data.frame(names="canonical",args=""))
+}
+canonicalize <- canonicalizeOB
+
+canonicalNumberingOB <- function(sdf){
+	.ensureOB()
+	results=canonicalNumbering_OB(obmol(sdf))
+	names(results) = cid(sdf)
+	results
+}
+canonicalNumbering <- canonicalNumberingOB
+
+applyOptions <- function(sdf,options){
 	.ensureOB()
 
 	if(class(sdf) == "SDFset" || class(sdf)=="SDF"){
-		sdfstrList=as(as(sdf,"SDFstr"),"list")
-		defs = paste(Map(function(x) paste(x,collapse="\n"), sdfstrList),collapse="\n" )
-		sdfNew = definition2SDFset(convertFormat("SDF","SDF",defs))
+		defs = sdfSet2definition(sdf)
+		sdfNew = definition2SDFset(convertFormat("SDF","SDF",defs,options))
 		cid(sdfNew)=sdfid(sdf)
 		if(class(sdf)=="SDF")
 			sdfNew[[1]]
 		else
 			sdfNew
 	}else
-		stop("input to regenCoordsOB must be a SDFset or SDF object. Found ",class(sdf))
+		stop("input to applyOptions must be a SDFset or SDF object. Found ",class(sdf))
 }
-regenerateCoords <- regenCoordsOB
 
 # perform smiles to sdf conversion through ChemMine Web Tools
 smiles2sdfWeb <- function(smiles,limit=100) {
@@ -1332,24 +1408,22 @@ times = new.env()
 times$descT = 0
 times$facT = 0
 times$vecT = 0
-genAPDescriptors <- function(sdf){
-  #.factor_to_vector(as.factor(.Call("genAPDescriptor",sdf)))
+times$uniqueT = 0
+genAPDescriptors <- function(sdf,uniquePairs=TRUE){
 
-	t=Sys.time()
+	# t=Sys.time()
 	d=.Call("genAPDescriptor",sdf)
-	times$descT <- times$descT + (Sys.time() - t)
+	# times$descT <- times$descT + (Sys.time() - t)
 
-	t=Sys.time()
-	f=as.factor(d)
-	times$facT <- times$facT + (Sys.time() - t)
+	if(uniquePairs){
+		# t=Sys.time()
+		d= .uniquifyAtomPairs(d)
+		# itimes$uniqueT <- times$uniqueT + (Sys.time() - t)
+	}
 
-	t=Sys.time()
-	v= .factor_to_vector(f)
-	times$vecT <- times$vecT + (Sys.time() - t)
-
-	v
-
+	d
 }
+
 propOB <- function(sdfSet){
 	.ensureOB()
 	results = prop_OB(obmol(sdfSet))
@@ -1359,7 +1433,10 @@ propOB <- function(sdfSet){
 
 fingerprintOB <- function(sdfSet,fingerprintName){
 	.ensureOB()
-	fpset = new("FPset",fpma=fingerprint_OB(obmol(sdfSet),fingerprintName),
+   x = fingerprint_OB(obmol(sdfSet),fingerprintName)
+	if(is.vector(x)) x= t(as.matrix(x))
+
+	fpset = new("FPset",fpma=x,
 					type=fingerprintName)
 	cid(fpset) = cid(sdfSet)
 	fpset
@@ -1367,6 +1444,10 @@ fingerprintOB <- function(sdfSet,fingerprintName){
 smartsSearchOB <- function(sdfset,smartsPattern,uniqueMatches=TRUE){
 	.ensureOB()
 	smartsSearch_OB(obmol(sdfset),smartsPattern,uniqueMatches)
+}
+exactMassOB <- function(sdfset){
+	.ensureOB()
+	exactMass_OB(obmol(sdfset))
 }
 
 
