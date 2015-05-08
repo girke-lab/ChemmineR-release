@@ -16,6 +16,8 @@ test.formatConversions <- function() {
 
 test.genAPDescriptors <- function(){
 
+	DEACTIVATED("removed old version of function")
+
 	data(sdfsample)
 	
 	for(i in 1:100){
@@ -101,6 +103,31 @@ test.fpSim <- function(){
 		#print(simFast)
 		checkEqualsNumeric(sim,simFast,tolerance=0.00001)
 	}
+
+	
+}
+test.fpSimParameters<- function(){
+	data(apset)
+	fpset = desc2fp(apset)
+
+	params = genParameters(fpset)
+
+	similarities = fpSim(fpset[[1]],fpset,top=6,parameters=params)
+	#print(similarities)
+
+	checkEqualsNumeric(similarities$similarity, 
+							 c(1,0.471910112359551,0.428849902534113,0.427522935779817,0.424742268041237,0.418738049713193),
+							 tolerance = 0.0001)
+	checkEqualsNumeric(similarities$zscore, 
+							 c(6.41202501933441,1.6379277432492,1.24865001753133,1.23665382424036,1.21151572069559,1.15723571451518),
+							 tolerance = 0.0001)
+	checkEqualsNumeric(similarities$evalue, 
+							 c(0.00000,6.36243,11.64270,11.84515,12.27769,13.25050),
+							 tolerance = 0.0001)
+	checkEqualsNumeric(similarities$pvalue, 
+							 c(0,0.998274830604939,0.999991217102066,0.999992826756578,0.999995345559029,0.999998240535916),
+							 tolerance = 0.0001)
+
 }
 test.exactMassOB <- function(){
 	data(sdfsample)
@@ -110,6 +137,7 @@ test.exactMassOB <- function(){
 									  318.1943),tolerance=0.00001)
 }
 test.3dCoords <-function(){
+	DEACTIVATED("causing timeout on bioc, disabling for now")
 	data(sdfsample)
 	sdf3d = generate3DCoords(sdfsample[1])
 
@@ -124,5 +152,45 @@ test.canonicalize <- function(){
 
 	checkEqualsNumeric(bb[1,1:3],c(2,3,1))
 	checkEqualsNumeric(bb[2,1:3],c(2,4,1))
+
+}
+test.parseV3000 <- function() {
+
+	DEACTIVATED("requires local files")
+	sdfset2 = read.SDFset("~/runs/v3000/DrugLike-0_2-3K3K_1.v2k.sdf")
+	sdfset3 = read.SDFset("~/runs/v3000/DrugLike-0_2-3K3K_1.sdf")  
+
+	compareSdfVersions = function(v2k,v3k){
+		checkEquals(sdfid(v2k),sdfid(v3k))
+
+		#message("v2k: ",nrow(atomblock(v2k)),"x",ncol(atomblock(v2k)))
+		#message("v3k: ",nrow(atomblock(v3k)),"x",ncol(atomblock(v3k)))
+		#print(head(atomblock(v2k)))
+		#print(head(atomblock(v3k)))
+		toCompare = c(1:5,7:10) #exclude colum 6
+		checkTrue( all(atomblock(v2k)[,toCompare] ==
+							atomblock(v3k)[,toCompare]))
+
+#		cmp = bondblock(v2k)[,1:3] == bondblock(v3k)
+#		if(! all(cmp)){
+#			mismatched = which(cmp==FALSE)
+#			print(cmp)
+#			print("mismatched: ")
+#			print(mismatched)
+#			print("data:")
+#			print(bondblock(v2k)[mismatched,1:3])
+#			print(bondblock(v3k)[mismatched,])
+#		}
+#		checkTrue( all(bondblock(v2k)[,1:3] == bondblock(v3k)))
+
+		checkTrue( all(datablock(v2k) == datablock(v3k)))
+	}
+	for(i in seq(along=sdfset2)){
+		#if(!(i  %in% c(38,39,89))){ # this differ in acceptable ways
+		#	message("testing ",i, " id: ",sdfid(sdfset2[i]))
+			compareSdfVersions(sdfset2[[i]],sdfset3[[i]])
+		#}
+	}
+
 
 }

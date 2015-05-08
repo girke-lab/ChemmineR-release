@@ -11,10 +11,10 @@
 library(ChemmineR) 
 library(knitcitations)
 RefManageR:::BibOptions(style="markdown",no.print.fields=c("doi"))
+sapply(read.bibtex(file="references.bib"),record_as_cited)
+
+
 ```
-<!--<font color='red'>Porting this vignette to knitr is causing some formatting issues. This will be
- resolved soon.</font>
--->
 
 ChemmineR
 =========
@@ -43,16 +43,16 @@ of chemoinformatic tools with the R programming environment has many
 advantages, such as easy access to a wide spectrum of statistical
 methods, machine learning algorithms and graphic utilities. The first
 version of this package was published in 
-`r citet(c("10.1093/bioinformatics/btn307"))` . Since then many additional
+`r citet(c("Cao_2008"))` . Since then many additional
 utilities and add-on packages have been added to the environment and
 many more are under development for future releases (Figure 2; 
-`r citep(c("10.1093/nar/gkr320","10.1093/bioinformatics/btt475"))`).
+`r citep(c("Backman_2011","Wang_2013"))`).
 
 -   Improved SMILES support via new *SMIset* object class
     and SMILES import/export functions
 
 -   Integration of a subset of OpenBabel functionalities via new
-    *ChemmineOB* add-on package `r citep(c("10.1093/bioinformatics/btn307"))`
+    *ChemmineOB* add-on package `r citep(c("Cao_2008"))`
 
 -   Streaming functionality for processing millions of molecules on a
     laptop
@@ -241,7 +241,7 @@ OpenBabel Functions
 
 *ChemmineR* integrates now a subset of cheminformatics
 functionalities implemented in the OpenBabel C++ library 
-`r citep(c("http://journal.chemistrycentral.com/content/2/1/5", "10.1093/bioinformatics/btn307" ))` . These
+`r citep(c("greycite13432", "Cao_2008" ))` . These
 utilities can be accessed by installing the *ChemmineOB*
 package and the OpenBabel software itself. *ChemmineR*
 will automatically detect the availability of
@@ -297,7 +297,7 @@ plot(sdfset[1], regenCoords=TRUE,print=FALSE)
 ```
 
 *generate3DCoords*: Generate 3D coordinates for compounds with only 2D coordinates.
-```{r eval=TRUE, tidy=FALSE}
+```{r eval=FALSE, tidy=FALSE}
 sdf3D = generate3DCoords(sdfset[1])
 ```
 
@@ -1241,7 +1241,6 @@ corresponding slot position in the *SDFset*.
  datablock(sdfset)[1:4] 
  test <- apply(propma[1:4,], 1, function(x) 
  data.frame(col=colnames(propma), value=x)) 
- sdf.visualize(sdfset[1:4], extra = test) 
 ```
 
 
@@ -1311,7 +1310,7 @@ Ring Perception and Aromaticity Assignment
 
 The function *rings* identifies all possible rings in one
 or many molecules (here *sdfset[1]*) using the exhaustive
-ring perception algorithm from `r citet(c("10.1021/ci960322f"))` . In addition, the function can return
+ring perception algorithm from `r citet(c("Hanser_1996"))` . In addition, the function can return
 all smallest possible rings as well as aromaticity information.
 
 The following example returns all possible rings in a
@@ -1416,41 +1415,15 @@ Online with ChemMine Tools
 --------------------------
 
 Alternatively, one can visualize compound structures with a standard web
-browser using the online ChemMine Tools service. The service allows to
-display other information next to the structures using the extra
-argument of the *sdf.visualize* function. The following
-examples demonstrate, how one can plot and annotate structures by
-passing on extra data as vector of character strings, matrices or
-lists.  
+browser using the online ChemMine Tools service.
 
 Plot structures using web service ChemMine Tools: 
 ```{r eval=FALSE, tidy=FALSE}
  sdf.visualize(sdfset[1:4]) 
 ```
 
-
 ![Visualization webpage created by calling
 *sdf.visualize*.](visualizescreenshot-small.png )
-
-Add extra annotation as *vector*: 
-```{r eval=FALSE, tidy=FALSE}
- sdf.visualize(sdfset[1:4], extra=month.name[1:4]) 
-```
-
-
-Add extra annotation as *matrix*: 
-```{r eval=FALSE, tidy=FALSE}
- extra <- apply(propma[1:4,], 1, 
-					 function(x) data.frame(Property=colnames(propma), Value=x))
- sdf.visualize(sdfset[1:4], extra=extra) 
-```
-
-
-Add extra annotation as *list*: 
-```{r eval=FALSE, tidy=FALSE}
- sdf.visualize(sdfset[1:4], extra=bondblock(sdfset[1:4]))
-```
-
 
 Similarity Comparisons and Searching
 ====================================
@@ -1466,7 +1439,7 @@ compound comparisons, structure similarity searching and clustering. The
 manual describing this functionality is available
 [](http://www.bioconductor.org/packages/devel/bioc/vignettes/fmcsR/inst/doc/fmcsR.pdf)
 and the associated publication is available in 
-`r citet(c("10.1093/bioinformatics/btt475"))`. The following gives a
+`r citet(c("Wang_2013"))`. The following gives a
 short preview of some functionalities provided by the
 *fmcsR* package.  
 
@@ -1485,7 +1458,7 @@ AP/APset Classes for Storing Atom Pair Descriptors
 
 The function *sdf2ap* computes atom pair descriptors for
 one or many compounds 
-`r citep(c("10.1021/ci00046a002","10.1021/ci025531g"))` . It returns a searchable atom pair database
+`r citep(c("Carhart_1985","Chen_2002"))` . It returns a searchable atom pair database
 stored in a container of class *APset*, which can be used
 for structural similarity searching and clustering. As similarity
 measure, the Tanimoto coefficient or related coefficients can be used.
@@ -1757,7 +1730,43 @@ Clustering example:
  plot(as.dendrogram(hc), edgePar=list(col=4, lwd=2), horiz=TRUE) 
 ```
 
+Fingerprint E-values
+---------------------
+The *fpSim* function can also return Z-scores, E-values, and p-values
+if given a set of score distribution parameters. These parameters can
+be computed over an *fpSet* with the *genParameters* function.
 
+
+```{r eval=TRUE, tidy=FALSE}
+	params = genParameters(fpset)
+```
+This function will compute all pairwise distances between the given
+fingerprints and then fit a Beta distribution to the resulting
+Tanimoto scores, conditioned on the number of set bits in each
+fingerprint. For large data sets where you would not want to compute
+all pairwise distances, you can set what fraction to sample with the
+*sampleFraction* argument. This step only needs to be done once for
+each database of *fpSet* objects. Alternatively, if you have a large
+database of fingerprints, or you believe that the parameters computed
+on a single database are more generally applicable, you can use the
+resulting parameters for other databases as well. 
+
+Once you have a set of parameters, you can pass them to *fpSim* with
+the *parameters* argument. 
+
+```{r eval=TRUE, tidy=FALSE}
+	fpSim(fpset[[1]],fpset,top=10,parameters=params)	
+```
+
+This will then return a data frame with the similarity, Z-score,
+E-value, and p-value. You can change which value will be used as a
+cutoff and to sort by by setting the argument *scoreType* to one of
+these scores. In this way you could set an E-value cutoff of 0.04 for
+example.
+
+```{r eval=TRUE, tidy=FALSE}
+	fpSim(fpset[[1]],fpset,cutoff=0.04,scoreType="evalue",parameters=params)	
+```
 Pairwise Compound Comparisons with PubChem Fingerprints
 -------------------------------------------------------
 
@@ -1809,7 +1818,7 @@ argument in *cmp.search* to *TRUE*, the
 matching compounds and their scores can be visualized with a standard
 web browser. Depending on the *visualize.browse*
 argument, an URL will be printed or a webpage will be opened showing the
-structures of the matching compounds along with their scores.  
+structures of the matching compounds.
 
 View similarity search results in R's graphics device:
 
@@ -1824,7 +1833,7 @@ View similarity search results in R's graphics device:
 View results online with Chemmine Tools: 
 ```{r eval=FALSE, tidy=FALSE}
  similarities <- cmp.search(apset, apset[1], type=3, cutoff = 10)
- sdf.visualize(sdfset[similarities[,1]], extra=similarities[,3]) 
+ sdf.visualize(sdfset[similarities[,1]]) 
 ```
 
 
@@ -1957,7 +1966,7 @@ Jarvis-Patrick Clustering
 -------------------------
 
 The Jarvis-Patrick clustering algorithm is widely used in
-cheminformatics `r citep("http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=1672233")`. It requires a nearest neighbor table, which consists
+cheminformatics `r citep("greycite13371")`. It requires a nearest neighbor table, which consists
 of *j* nearest neighbors for each item (*e.g.* compound).
 The nearest neighbor table is then used to join items into clusters when
 they meet the following requirements: (a) they are contained in each
@@ -2170,7 +2179,6 @@ Plot dendrogram with heatmap (here similarity matrix):
 			  density.info="none", trace="none") 
 ```
 
-
 Searching PubChem
 =================
 
@@ -2228,6 +2236,79 @@ Search an *SDFset* container on PubChem:
  compounds 
 ```
 
+ChemMine Tools R Interface
+==========================
+
+ChemMine Web Tools is an online service for analyzing and clustering small molecules. It provides numerous cheminformatics tools which can be used directly on the website, or called remotely from within R. When called within R jobs are sent remotely to a queue on a compute cluster at UC Riverside, which is a free service offered to *ChemmineR* users.
+The website is free and open to all users and is available at <http://chemmine.ucr.edu>. When new tools are added to the service, they automatically become availiable within *ChemmineR* without updating your local R package.
+
+List all available tools:
+
+```{r listCMTools, eval=FALSE, tidy=FALSE}
+listCMTools()
+```
+
+Show options and description for a tool. This also provides an example function call which can be copied
+verbatim, and changed as necessary:
+
+```{r toolDetailsCMT, eval=TRUE, tidy=FALSE}
+toolDetails("Fingerprint Search")
+```
+
+Launch a Job
+------------------------------
+
+When a job is launched it returns a job token which refers to the running job on the UC Riverside cluster. You can check the status of a job or obtain the results as follows. If *result* is called on a job that is still running, it will loop internally until the job is completed, and then return the result.
+
+Launch the tool *pubchemID2SDF* to obtain the structure for PubChem cid 2244:
+
+```{r launchCMTool, eval=FALSE, tidy=FALSE}
+job1 <- launchCMTool("pubchemID2SDF", 2244)
+status(job1)
+result1 <- result(job1)
+```
+
+Use the previous result to search PubChem for similar compounds:
+
+```{r fingerprintSearchCMT, eval=FALSE, tidy=FALSE}
+job2 <- launchCMTool('Fingerprint Search', result1, 'Similarity Cutoff'=0.95, 'Max Compounds Returned'=200)
+result2 <- result(job2)
+job3 <- launchCMTool("pubchemID2SDF", result2)
+result3 <- result(job3)
+```
+
+Compute OpenBabel descriptors for these search results:
+
+```{r obDescriptorsCMT, eval=FALSE, tidy=FALSE}
+job4 <- launchCMTool("OpenBabel Descriptors", result3)
+result4 <- result(job4)
+result4
+```
+
+View Job Result in Browser
+------------------------------
+
+The function *browseJob* launches a web browser to view the results of a job online, just as if they
+had been run from the ChemMine Tools website itself. If you also want the result data within R, you must first call
+the *result* object from within R before calling *browseJob*. Once *browseJob* has been called on a job token,
+the results are no longer accessible within R. 
+
+If you have an account on ChemMine Tools and would like to save the web results from your job, you must first login to your account within the default web browser on your system before you launch *browseJob*. The job will then be assigned automatically to the currently logged in account.
+
+View OpenBabel descriptors online:
+
+```{r obDescriptorsWWW, eval=FALSE, tidy=FALSE}
+browseJob(job4)
+```
+
+Perform binning clustering and visualize result online:
+
+```{r binningClusterWWW, eval=FALSE, tidy=FALSE}
+job5 <- launchCMTool("Binning Clustering", result3, 'Similarity Cutoff'=0.9)
+browseJob(job5)
+```
+
+
 
 Version Information
 ===================
@@ -2260,6 +2341,7 @@ References
 
 	for(i in 1:length(b))
 		b[i]$title = fix(b[i]$title)
+#	write.bibtex(file="references.bib")
 	b
 
 ```

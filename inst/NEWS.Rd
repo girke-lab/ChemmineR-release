@@ -1,5 +1,14 @@
 \name{NEWS}
 \title{ChemmineR News}
+\section{CHANGES IN VERSION 2.20.0}{
+
+   \subsection{NEW FEATURES}{
+		\itemize{
+			\item Fingerprint search now provides E-values
+			\item New SDF plotting function, draw_sdf
+		}
+	}
+}
 \section{CHANGES IN VERSION 2.18.0}{
 
    \subsection{NEW FEATURES}{
