@@ -675,15 +675,15 @@ plot(sdfset[1], regenCoords=TRUE,print=FALSE)</code></pre>
 <pre class="r"><code> data(sdfsample)
 
  #create and initialize a new SQLite database 
- conn &lt;- initDb(&quot;test.db&quot;)</code></pre>
-<pre><code>## [1] &quot;createing db&quot;</code></pre>
-<pre class="r"><code> # load data and compute 3 features: molecular weight, with the MW function, 
+ conn &lt;- initDb(&quot;test.db&quot;)
+
+ # load data and compute 3 features: molecular weight, with the MW function, 
  # and counts for RINGS and AROMATIC, as computed by rings, which 
  # returns a data frame itself. 
  ids&lt;-loadSdf(conn,sdfsample, function(sdfset) 
-                     data.frame(rings(sdfset,type=&quot;count&quot;,upper=6, arom=TRUE),propOB(sdfset)) ) </code></pre>
-<pre><code>## adding new features to existing compounds. This could take a while</code></pre>
-<pre class="r"><code> #list features in the database:
+                     data.frame(rings(sdfset,type=&quot;count&quot;,upper=6, arom=TRUE),propOB(sdfset)) ) 
+
+ #list features in the database:
  print(listFeatures(conn))</code></pre>
 <pre><code>##  [1] &quot;aromatic&quot; &quot;cansmi&quot;   &quot;cansmins&quot; &quot;formula&quot;  &quot;hba1&quot;     &quot;hba2&quot;     &quot;hbd&quot;      &quot;inchi&quot;   
 ##  [9] &quot;logp&quot;     &quot;mr&quot;       &quot;mw&quot;       &quot;nf&quot;       &quot;rings&quot;    &quot;title&quot;    &quot;tpsa&quot;</code></pre>
@@ -1218,19 +1218,19 @@ print(results[1:5])</code></pre>
  fpset &lt;- desc2fp(apset)
  view(fpset[1:2]) </code></pre>
 <pre><code>## $`650001`
-## An instance of &quot;FP&quot; of type &quot;unknown-8312&quot;
+## An instance of &quot;FP&quot; of type &quot;unknown-8963&quot;
 ## &lt;&lt;fingerprint&gt;&gt;
 ## 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ... length: 1024 
 ## 
 ## $`650002`
-## An instance of &quot;FP&quot; of type &quot;unknown-2956&quot;
+## An instance of &quot;FP&quot; of type &quot;unknown-1487&quot;
 ## &lt;&lt;fingerprint&gt;&gt;
 ## 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 1 1 ... length: 1024</code></pre>
 <p><code>FPset</code> class usage:</p>
 <pre class="r"><code> fpset[1:4] # behaves like a list </code></pre>
 <pre><code>## An instance of a 1024 bit &quot;FPset&quot; of type &quot;apfp&quot; with 4 molecules</code></pre>
 <pre class="r"><code> fpset[[1]] # returns FP object </code></pre>
-<pre><code>## An instance of &quot;FP&quot; of type &quot;unknown-4167&quot;
+<pre><code>## An instance of &quot;FP&quot; of type &quot;unknown-865&quot;
 ## &lt;&lt;fingerprint&gt;&gt;
 ## 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ... length: 1024</code></pre>
 <pre class="r"><code> length(fpset) # number of compounds ENDCOMMENT</code></pre>
@@ -1253,7 +1253,7 @@ print(results[1:5])</code></pre>
 <p>Construct <code>FPset</code> class form <code>matrix</code>:</p>
 <pre class="r"><code> fpma &lt;- as.matrix(fpset) # coerces FPset to matrix 
  as(fpma, &quot;FPset&quot;) </code></pre>
-<pre><code>## An instance of a 1024 bit &quot;FPset&quot; of type &quot;unknown-926&quot; with 100 molecules</code></pre>
+<pre><code>## An instance of a 1024 bit &quot;FPset&quot; of type &quot;unknown-8715&quot; with 100 molecules</code></pre>
 <p>Construct <code>FPset</code> class form <code>character vector</code>:</p>
 <pre class="r"><code> fpchar &lt;- as.character(fpset) # coerces FPset to character strings 
  as(fpchar, &quot;FPset&quot;) # construction of FPset class from character vector</code></pre>
@@ -1270,7 +1270,7 @@ print(results[1:5])</code></pre>
 <pre class="r"><code> fold(fpset, bits=128) #fold each FP down to 128 bits</code></pre>
 <pre><code>## An instance of a 128 bit &quot;FPset&quot; of type &quot;apfp&quot; with 100 molecules</code></pre>
 <pre class="r"><code> fold(fpset[[1]])  # fold an individual FP</code></pre>
-<pre><code>## An instance of &quot;FP&quot; of type &quot;unknown-2968&quot;
+<pre><code>## An instance of &quot;FP&quot; of type &quot;unknown-5939&quot;
 ## &lt;&lt;fingerprint&gt;&gt;
 ## 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ... length: 512</code></pre>
 <pre class="r"><code> fptype(fpset) # get type of FPs</code></pre>
@@ -1751,7 +1751,6 @@ print(results[1:5])</code></pre>
 ## 14     Search             Fingerprint Search     SDFset    integer</code></pre>
 <p>Show options and description for a tool. This also provides an example function call which can be copied verbatim, and changed as necessary:</p>
 <pre class="r"><code>toolDetails(&quot;Fingerprint Search&quot;)</code></pre>
-<pre><code>## Loading required package: bitops</code></pre>
 <pre><code>## Category:        Search
 ## Name:            Fingerprint Search
 ## Input R Object:      SDFset
@@ -1829,14 +1828,17 @@ browseJob(job5)</code></pre>
  [7] LC_PAPER=en_US.UTF-8 LC_NAME=C LC_ADDRESS=C<br />
 [10] LC_TELEPHONE=C LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C</p>
 <p>attached base packages: [1] parallel stats graphics utils datasets grDevices methods base</p>
-<p>other attached packages: [1] RCurl_1.95-4.7 bitops_1.0-6 gplots_2.17.0 scatterplot3d_0.3-36 [5] ape_3.4 ggplot2_1.0.1 bioassayR_1.8.13 BiocGenerics_0.16.1 [9] rjson_0.2.15 Matrix_1.2-3 RSQLite_1.0.0 DBI_0.3.1<br />
-[13] fmcsR_1.12.0 ChemmineOB_1.8.0 ChemmineR_2.23.1 BiocStyle_1.8.0</p>
-<p>loaded via a namespace (and not attached): [1] Rcpp_0.12.2 formatR_1.2.1 plyr_1.8.3 tools_3.2.3 zlibbioc_1.16.0<br />
- [6] digest_0.6.8 nlme_3.1-122 evaluate_0.8 gtable_0.1.2 lattice_0.20-33<br />
-[11] yaml_2.1.13 proto_0.3-10 stringr_1.0.0 knitr_1.11 caTools_1.17.1<br />
-[16] gtools_3.5.0 grid_3.2.3 XML_3.98-1.3 rmarkdown_0.8.1 gdata_2.17.0<br />
-[21] reshape2_1.4.1 magrittr_1.5 codetools_0.2-14 scales_0.3.0 htmltools_0.2.6<br />
-[26] MASS_7.3-45 colorspace_1.2-6 KernSmooth_2.23-15 stringi_1.0-1 munsell_0.4.2</p>
+<p>other attached packages: [1] gplots_2.17.0 scatterplot3d_0.3-36 ape_3.4 ggplot2_1.0.1<br />
+ [5] bioassayR_1.8.13 BiocGenerics_0.16.1 rjson_0.2.15 Matrix_1.2-3<br />
+ [9] RSQLite_1.0.0 DBI_0.3.1 fmcsR_1.12.0 ChemmineOB_1.8.0<br />
+[13] ChemmineR_2.23.1 BiocStyle_1.8.0</p>
+<p>loaded via a namespace (and not attached): [1] Rcpp_0.12.2 formatR_1.2.1 plyr_1.8.3 bitops_1.0-6 tools_3.2.3<br />
+ [6] zlibbioc_1.16.0 digest_0.6.8 nlme_3.1-122 evaluate_0.8 gtable_0.1.2<br />
+[11] lattice_0.20-33 yaml_2.1.13 proto_0.3-10 stringr_1.0.0 knitr_1.11<br />
+[16] caTools_1.17.1 gtools_3.5.0 grid_3.2.3 XML_3.98-1.3 rmarkdown_0.8.1<br />
+[21] gdata_2.17.0 reshape2_1.4.1 magrittr_1.5 codetools_0.2-14 scales_0.3.0<br />
+[26] htmltools_0.2.6 MASS_7.3-45 colorspace_1.2-6 KernSmooth_2.23-15 stringi_1.0-1<br />
+[31] RCurl_1.95-4.7 munsell_0.4.2</p>
 <div align="right">
 <a href>Back to Table of Contents</a>
 </div>
